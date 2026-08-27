@@ -1,0 +1,29 @@
+<Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{D4D9F8D3-7D7C-4B5B-A8D6-3B6C3B2B8C11}</ProjectGuid>
+    <OutputType>AppContainerExe</OutputType>
+    <RootNamespace>XboxDownloader</RootNamespace>
+    <AssemblyName>XboxDownloader</AssemblyName>
+    <TargetPlatformVersion>10.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.14393.0</TargetPlatformMinVersion>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <FileAlignment>512</FileAlignment>
+    <ApplicationIcon />
+    <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="App.xaml.cs" />
+    <Compile Include="MainPage.xaml.cs" />
+    <Page Include="App.xaml"><Generator>MSBuild:Compile</Generator></Page>
+    <Page Include="MainPage.xaml"><Generator>MSBuild:Compile</Generator></Page>
+    <None Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.WindowsRuntime" />
+    <Reference Include="Windows" />
+  </ItemGroup>
+</Project>
