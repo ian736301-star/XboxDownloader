@@ -1,1 +1,72 @@
+name: Build Xbox Downloader MSIX
 
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Criar certificado
+        shell: powershell
+        run: |
+          $cert = New-SelfSignedCertificate `
+            -Type Custom `
+            -Subject "CN=XboxDownloader" `
+            -KeyUsage DigitalSignature `
+            -FriendlyName "Xbox Downloader" `
+            -CertStoreLocation "Cert:\CurrentUser\My" `
+            -TextExtension @(
+              "2.5.29.37={text}1.3.6.1.5.5.7.3.3"
+            )
+
+          $pwd = ConvertTo-SecureString `
+            "XboxDownloaderDev2026!" `
+            -AsPlainText -Force
+
+          Export-PfxCertificate `
+            -Cert $cert `
+            -FilePath "$env:GITHUB_WORKSPACE\XboxDownloader.pfx" `
+            -Password $pwd
+
+          Export-Certificate `
+            -Cert $cert `
+            -FilePath "$env:GITHUB_WORKSPACE\XboxDownloader.cer"
+
+      - name: Compilar e assinar MSIX
+        shell: powershell
+        run: |
+          msbuild .\XboxDownloader.csproj `
+            /restore `
+            /p:Configuration=Release `
+            /p:Platform=x64 `
+            /p:AppxPackageSigningEnabled=true `
+            /p:PackageCertificateKeyFile="$env:GITHUB_WORKSPACE\XboxDownloader.pfx" `
+            /p:PackageCertificatePassword="XboxDownloaderDev2026!" `
+            /p:AppxBundle=Never `
+            /p:UapAppxPackageBuildMode=SideloadOnly `
+            /p:AppxPackageDir="$env:GITHUB_WORKSPACE\AppPackages\"
+
+      - name: Preparar artefatos
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path .\ReleaseArtifacts
+
+          Get-ChildItem .\AppPackages -Recurse -Filter *.msix |
+            Copy-Item -Destination .\ReleaseArtifacts -Force
+
+          Copy-Item .\XboxDownloader.cer `
+            .\ReleaseArtifacts\ -Force
+
+      - name: Disponibilizar MSIX e certificado
+        uses: actions/upload-artifact@v4
+        with:
+          name: XboxDownloader-XboxDevMode
+          path: ReleaseArtifacts/*
